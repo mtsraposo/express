@@ -1,13 +1,12 @@
 const express = require('express');
+
 const { getElementById, getIndexById, updateElement,
     seedElements, createElement } = require('./utils');
 
 let expressions = [];
 seedElements(expressions, 'expressions');
 
-const expressionsRouter = express.Router();
-
-module.exports = expressionsRouter;
+expressionsRouter = express.Router();
 
 // Get all expressions
 expressionsRouter.get('/', (req, res, next) => {
@@ -56,3 +55,5 @@ expressionsRouter.delete('/:id', (req, res, next) => {
         res.status(404).send();
     }
 });
+
+module.exports = expressionsRouter;
