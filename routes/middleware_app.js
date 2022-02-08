@@ -38,7 +38,7 @@ const bodyParser = (req, res, next) => {
 };
 
 // Logging Middleware
-app.use(morgan('tiny'));
+app.use(morgan('dev'));
 
 app.use('/beans/:beanName', (req, res, next) => {
     const beanName = req.params.beanName;
