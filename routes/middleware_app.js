@@ -2,6 +2,7 @@ const express = require('express');
 const app = express();
 const morgan = require('morgan');
 const bodyParser = require('body-parser');
+const errorhandler = require('errorhandler');
 
 app.use(express.static('public'));
 
@@ -85,9 +86,9 @@ app.delete('/beans/:beanName', (req, res, next) => {
     res.status(204).send();
 });
 
-app.use((err, req, res, next) => {
-    res.status(500).send(err);
-});
+if (!process.env.IS_TEST_ENV) {
+    app.use(errorhandler())
+}
 
 app.listen(PORT, () => {
     console.log(`Server is listening on port ${PORT}`);
