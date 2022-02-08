@@ -85,9 +85,9 @@ app.delete('/beans/:beanName', (req, res, next) => {
     res.status(204).send();
 });
 
-// Add your error handler here:
-
-
+app.use((err, req, res, next) => {
+    res.status(500).send(err);
+});
 
 app.listen(PORT, () => {
     console.log(`Server is listening on port ${PORT}`);
