@@ -29,14 +29,20 @@ app.use((req, res, next) => {
     next();
 });
 
-// Add your code below:
 app.use('/beans/:beanName', (req, res, next) => {
     const beanName = req.params.beanName;
     if (!jellybeanBag[beanName]) {
         console.log('Response Sent');
         return res.status(404).send('Bean with that name does not exist');
     }
+    req.bean = jellybeanBag[beanName];
+    req.beanName = beanName;
+    next();
 });
+
+// Add your code below:
+
+
 
 
 app.get('/beans/', (req, res, next) => {
@@ -66,15 +72,12 @@ app.post('/beans/', (req, res, next) => {
 });
 
 app.get('/beans/:beanName', (req, res, next) => {
-    res.send(jellybeanBag[beanName]);
+    res.send(req.bean);
     console.log('Response Sent');
 });
 
 app.post('/beans/:beanName/add', (req, res, next) => {
-    const beanName = req.params.beanName;
-    if (!jellybeanBag[beanName]) {
-        return res.status(404).send('Bean with that name does not exist');
-    }
+
     let bodyData = '';
     req.on('data', (data) => {
         bodyData += data;
@@ -82,17 +85,13 @@ app.post('/beans/:beanName/add', (req, res, next) => {
 
     req.on('end', () => {
         const numberOfBeans = Number(JSON.parse(bodyData).number) || 0;
-        jellybeanBag[beanName].number += numberOfBeans;
-        res.send(jellybeanBag[beanName]);
+        req.bean.number += numberOfBeans;
+        res.send(req.bean);
         console.log('Response Sent');
     });
 });
 
 app.post('/beans/:beanName/remove', (req, res, next) => {
-    const beanName = req.params.beanName;
-    if (!jellybeanBag[beanName]) {
-        return res.status(404).send();
-    }
     let bodyData = '';
     req.on('data', (data) => {
         bodyData += data;
@@ -100,22 +99,30 @@ app.post('/beans/:beanName/remove', (req, res, next) => {
 
     req.on('end', () => {
         const numberOfBeans = Number(JSON.parse(bodyData).number) || 0;
-        if (jellybeanBag[beanName].number < numberOfBeans) {
+        if (req.bean.number < numberOfBeans) {
             return res.status(400).send('Not enough beans in the jar to remove!');
         }
-        jellybeanBag[beanName].number -= numberOfBeans;
-        res.send(jellybeanBag[beanName]);
+        req.bean.number -= numberOfBeans;
+        res.send(req.bean);
         console.log('Response Sent');
     });
 });
 
 app.delete('/beans/:beanName', (req, res, next) => {
-    jellybeanBag[beanName] = null;
+    const beanName = req.params.beanName;
+    if (!req.bean) {
+        return res.status(404).send('Bean with that name does not exist');
+    }
+    req.bean = null;
     res.status(204).send();
     console.log('Response Sent');
 });
 
 app.put('/beans/:beanName/name', (req, res, next) => {
+    const beanName = req.params.beanName;
+    if (!req.bean) {
+        return res.status(404).send('Bag with that name does not exist');
+    }
     let bodyData = '';
     req.on('data', (data) => {
         bodyData += data;
@@ -123,8 +130,8 @@ app.put('/beans/:beanName/name', (req, res, next) => {
 
     req.on('end', () => {
         const newName = JSON.parse(bodyData).name;
-        jellybeanBag[newName] = jellybeanBag[req.beanName];
-        jellybeanBag[req.beanName] = null;
+        jellybeanBag[newName] = req.bean;
+        req.bean = null;
         res.send(jellybeanBag[newName]);
         console.log('Response Sent');
     });
