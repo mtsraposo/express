@@ -1,6 +1,7 @@
 const express = require('express');
 const app = express();
 const morgan = require('morgan');
+const bodyParser = require('body-parser');
 
 app.use(express.static('public'));
 
@@ -24,21 +25,13 @@ const jellybeanBag = {
     }
 };
 
-const bodyParser = (req, res, next) => {
-    let queryData = '';
-    req.on('data', (data) => {
-        queryData += data;
-    });
-    req.on('end', () => {
-        if (queryData) {
-            req.body = JSON.parse(queryData);
-        }
-        next();
-    });
-};
+// Body-parsing Middleware
+app.use(bodyParser.json());
 
 // Logging Middleware
-app.use(morgan('dev'));
+if (!process.env.IS_TEST_ENV) {
+    app.use(morgan('dev'));
+}
 
 app.use('/beans/:beanName', (req, res, next) => {
     const beanName = req.params.beanName;
@@ -54,7 +47,7 @@ app.get('/beans/', (req, res, next) => {
     res.send(jellybeanBag);
 });
 
-app.post('/beans/', bodyParser, (req, res, next) => {
+app.post('/beans/', (req, res, next) => {
     const body = req.body;
     const beanName = body.name;
     if (jellybeanBag[beanName] || jellybeanBag[beanName] === 0) {
@@ -71,13 +64,13 @@ app.get('/beans/:beanName', (req, res, next) => {
     res.send(req.bean);
 });
 
-app.post('/beans/:beanName/add', bodyParser, (req, res, next) => {
+app.post('/beans/:beanName/add', (req, res, next) => {
     const numberOfBeans = Number(req.body.number) || 0;
     req.bean.number += numberOfBeans;
     res.send(req.bean);
 });
 
-app.post('/beans/:beanName/remove', bodyParser, (req, res, next) => {
+app.post('/beans/:beanName/remove', (req, res, next) => {
     const numberOfBeans = Number(req.body.number) || 0;
     if (req.bean.number < numberOfBeans) {
         return res.status(400).send('Not enough beans in the jar to remove!');
@@ -91,6 +84,10 @@ app.delete('/beans/:beanName', (req, res, next) => {
     jellybeanBag[beanName] = null;
     res.status(204).send();
 });
+
+// Add your error handler here:
+
+
 
 app.listen(PORT, () => {
     console.log(`Server is listening on port ${PORT}`);
